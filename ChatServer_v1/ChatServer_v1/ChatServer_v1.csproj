@@ -41,6 +41,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AsyncLib\ClientPacketHandler.cs" />
     <Compile Include="AsyncLib\ClientSocket_async.cs" />
     <Compile Include="AsyncLib\ServerSocket_async.cs" />
     <Compile Include="Program.cs" />

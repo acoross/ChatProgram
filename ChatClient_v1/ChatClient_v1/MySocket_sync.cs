@@ -91,10 +91,15 @@ namespace Acoross.Network
             {
                 try
                 {
-                    //byte[] msg = Encoding.ASCII.GetBytes("This is a test<EOF>");
+                    byte[] header = BitConverter.GetBytes((Int16)1);
                     byte[] msg = Encoding.UTF8.GetBytes(input + "<EOF>");
+                    byte[] buffer = new byte[1024];
 
-                    int bytesSent = m_Socket.Send(msg);
+                    System.Buffer.BlockCopy(header, 0, buffer, 0, 2);
+                    buffer[2] = (byte)msg.Length;
+                    System.Buffer.BlockCopy(msg, 0, buffer, 3, msg.Length);
+
+                    int bytesSent = m_Socket.Send(buffer, 3 + msg.Length, 0);
 
                     m_bytesRecv = m_Socket.Receive(m_buffer);
                     // 아래의 경우 상대편 socket 이 close 된 것이다.
@@ -105,9 +110,13 @@ namespace Acoross.Network
                         m_Socket = null;
 
                         Console.WriteLine("disconnected.");
-                    }
 
-                    retval = true;
+                        retval = false;
+                    }
+                    else
+                    {
+                        retval = true;
+                    }
                 }
                 catch (SocketException se)
                 {
@@ -131,9 +140,12 @@ namespace Acoross.Network
 
         ~MyClientSocket()
         {
-            m_Socket.Shutdown(SocketShutdown.Both);
-            m_Socket.Close();
-            m_Socket = null;
+            if (m_Socket != null)
+            {
+                m_Socket.Shutdown(SocketShutdown.Both);
+                m_Socket.Close();
+                m_Socket = null;
+            }
         }
     }
 }
