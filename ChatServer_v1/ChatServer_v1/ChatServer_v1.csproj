@@ -41,8 +41,11 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AsyncLib\ClientSocket_async.cs" />
+    <Compile Include="AsyncLib\ServerSocket_async.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SyncServerSocket.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
