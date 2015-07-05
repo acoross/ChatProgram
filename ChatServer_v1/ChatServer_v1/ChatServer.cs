@@ -14,12 +14,20 @@ using ChatServer_v1.CS_Handler;
 
 namespace ChatServer_v1
 {
+    public struct UserLoginData
+    {
+        public string name;
+        public string pwd;
+    }
+
     public class ChatServer
     {
         private ChatServer()
         {}
 
-        public AsyncListenServer<CS_PacketTableNew> m_listenServer = null;
+        public List<UserLoginData> m_UserLoginDataList = new List<UserLoginData>();
+
+        public AsyncListenServer<CS_PacketTableNew, ChatClientSocketCallback> m_listenServer = null;
         private Object m_ClientSocketsLock = new Object();
         private List<ISocket> m_ClientSockets = new List<ISocket>();
 
@@ -49,7 +57,7 @@ namespace ChatServer_v1
 
         public void Run()
         {
-            m_listenServer = new AsyncListenServer<CS_PacketTableNew>();
+            m_listenServer = new AsyncListenServer<CS_PacketTableNew, ChatClientSocketCallback>();
             m_listenServer.StartListening();
         }
     }

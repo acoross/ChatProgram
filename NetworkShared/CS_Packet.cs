@@ -11,9 +11,7 @@ namespace Acoross.NetworkShared
     // client to server packet
     public enum CS_PacketType : short
     {
-        //CS_LOGIN,
-        // s id,
-        // s password
+        CS_LOGIN,
         CS_ECHO,
         // anything
         CS_SAY,
@@ -33,6 +31,18 @@ namespace Acoross.NetworkShared
     //    };
     //}
     
+    // CS_LOGIN
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
+    public class CS_LOGIN_Packet : IPacket
+    {
+        // Data begin
+        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 20)]
+        public string name;
+        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 20)]
+        public string pwd;
+        // Data end
+    }
+
     // CS_ECHO
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
     public class CS_ECHO_Packet : IPacket

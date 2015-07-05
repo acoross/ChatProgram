@@ -13,17 +13,19 @@ namespace Acoross.BaseNetworkLib.Async
         public Socket m_Socket = null;
         public const int BufferSize = 1024;
         public byte[] m_buffer = new byte[BufferSize];
-        public StringBuilder sb = new StringBuilder();
+        //public StringBuilder sb = new StringBuilder();
 
         // 버퍼에 데이터가 들어있는 양.
         public int m_readLen = 0;
 
         IPacketTable m_PacketTable;
+        IAsyncSocketCallback m_Callback;
 
-        public AsyncSocket(Socket s, IPacketTable myTable)
+        public AsyncSocket(Socket s, IPacketTable myTable, IAsyncSocketCallback myCallback)
         {
             m_Socket = s;
             m_PacketTable = myTable;
+            m_Callback = myCallback;
         }
 
         // client socket 으로 사용할 시 호출.
@@ -116,6 +118,11 @@ namespace Acoross.BaseNetworkLib.Async
                 s.Shutdown(SocketShutdown.Both);
                 s.Close();
             }
+        }
+
+        public void OnAccepted()
+        {
+            m_Callback.OnAccepted(this);
         }
 
         public void OnRead(IAsyncResult ar)

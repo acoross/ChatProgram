@@ -11,7 +11,9 @@ using System.Net.Sockets;
 
 namespace Acoross.BaseNetworkLib.Async
 {
-    public class AsyncListenServer<T> where T : IPacketTable, new()
+    public class AsyncListenServer<T, Cb> 
+        where T : IPacketTable, new()
+        where Cb : IAsyncSocketCallback, new()
     {
         public Socket m_listenSocket = null;
         public ManualResetEvent m_alldone = new ManualResetEvent(false);
@@ -31,7 +33,7 @@ namespace Acoross.BaseNetworkLib.Async
         {
             return m_ClientSocketList;
         }
-        public bool SendToAllWithoutMe<T>(ISocket me, Int16 packetNum, T packet) where T : IPacket
+        public bool SendToAllWithoutMe<Ts>(ISocket me, Int16 packetNum, Ts packet) where Ts : IPacket
         {
             lock(m_ClientSocketLock)
             {
@@ -95,16 +97,15 @@ namespace Acoross.BaseNetworkLib.Async
         // T type 의 IPacketTable 을 사용하는 client Socket 을 만든다.
         public static void AcceptCallback(IAsyncResult ar)
         {
-            AsyncListenServer<T> ss = (AsyncListenServer<T>)ar.AsyncState;
+            AsyncListenServer<T, Cb> ss = (AsyncListenServer<T, Cb>)ar.AsyncState;
             ss.m_alldone.Set();
 
             Socket listener = ss.m_listenSocket;
             Socket handler = listener.EndAccept(ar);
 
-            Console.WriteLine("connected from {0}", handler.RemoteEndPoint.ToString());
-            
-            AsyncSocket cliSock = new AsyncSocket(handler, new T());
+            AsyncSocket cliSock = new AsyncSocket(handler, new T(), new Cb());
 
+            cliSock.OnAccepted();
             ss.AddClientSocket(cliSock);
 
             cliSock.BeginReceive();
