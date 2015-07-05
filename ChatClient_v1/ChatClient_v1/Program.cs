@@ -4,50 +4,66 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+using Acoross.NetworkShared;
 using Acoross.Network;
+using Acoross.BaseNetworkLib;
+using Acoross.BaseNetworkLib.Async;
+
+using ChatClient_v1.SC_Handler;
 
 namespace ChatClient_v1
 {
     class Program
     {
-        static void SyncSocket()
+        static void AsyncConnection(string ip)
         {
-            string ip = System.Net.Dns.GetHostName();
-            MyClientSocket sock = new MyClientSocket();
-
-            if (sock.ConnectTo(ip))
+            if (ip == null)
             {
+                ip = System.Net.Dns.GetHostName();
+            }
+
+            AsyncSocket chatserver = new AsyncSocket(null, new SC_PacketTable());
+
+            if (chatserver.ConnectTo(ip))
+            {
+                chatserver.BeginReceive();
+
                 while (true)
                 {
                     string input = Console.ReadLine();
-
                     if (input.Length == 1 && input[0] == 'q')
                     {
-                        sock.Disconnect();
+                        chatserver.Disconnect();
                         break;
                     }
 
-                    if (!sock.SendAndRecv_Sync(input))
+                    //CS_ECHO_Packet echo = new CS_ECHO_Packet();
+                    CS_SAY_Packet echo = new CS_SAY_Packet();
+                    echo.msg = input;
+
+                    //if (!PacketHelper.Send(chatserver, (Int16)CS_PacketType.CS_ECHO, echo))
+                    if (!PacketHelper.Send(chatserver, (Int16)CS_PacketType.CS_SAY, echo))
                     {
                         break;
                     }
-                    string tmp = Encoding.UTF8.GetString(sock.m_buffer, 0, sock.m_bytesRecv);
-                    Console.WriteLine(Encoding.UTF8.GetString(sock.m_buffer, 0, sock.m_bytesRecv));
                 }
             }
         }
 
         static void Main(string[] args)
         {
-            //if (args.Length < 3)
-            //{
-            //    Console.WriteLine("ChatClient ip id pwd");
-            //    return;
-            //}
+            foreach (string arg in args)
+            {
+                Console.WriteLine("arg({0})", arg);
+            }
 
-            //string ip = args[1];
+            string ip = null;
+            if (args.Length >= 1)
+            {
+                ip = args[0];
+            }
 
-            SyncSocket();
+            AsyncConnection(ip);
 
             Console.WriteLine("Press any key.");
             Console.Read();

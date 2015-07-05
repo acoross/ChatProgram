@@ -4,8 +4,6 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-using Acoross.Network.Async;
-
 namespace ChatServer_v1
 {
     class Program
@@ -23,8 +21,10 @@ namespace ChatServer_v1
             //    Console.WriteLine("Fail to listen.");
             //}
 
-            ServerSocket_async sock = new ServerSocket_async();
-            sock.StartListening();
+            //AsyncListenServer<CS_PacketTable> instance = (AsyncListenServer<CS_PacketTable>)Activator.CreateInstance(typeof(AsyncListenServer<CS_PacketTable>));
+            //instance.StartListening();
+
+            ChatServer.Instance().Run();
 
             Console.WriteLine("Press any key.");
             Console.Read();
