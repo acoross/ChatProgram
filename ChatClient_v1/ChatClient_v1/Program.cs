@@ -30,7 +30,7 @@ namespace ChatClient_v1
 
             if (chatserver.ConnectTo(ip))
             {
-                chatserver.BeginReceive();
+                //chatserver.BeginReceive();
 
                 while (true)
                 {
@@ -47,19 +47,21 @@ namespace ChatClient_v1
                     PacketHelper.Send(chatserver, (Int16)CS_PacketType.CS_LOGIN, loginPacket);
                     byte[] buffer = new byte[1024];
 
-                    m_alldone.WaitOne();
-                    if (loginResult == 1)
-                    {
-                        break;
-                    }
-                    //chatserver.GetSocket().Receive(buffer);
-                    //SC_LOGIN_RESULT_Packet result = PacketHelper.ParsePacketStruct<SC_LOGIN_RESULT_Packet>(buffer);
-                    //if (result.Result == 1)
+                    //m_alldone.WaitOne();
+                    //if (loginResult == 1)
                     //{
                     //    break;
                     //}
+                    chatserver.GetSocket().Receive(buffer);
+                    SC_LOGIN_RESULT_Packet result = PacketHelper.ParsePacketStruct<SC_LOGIN_RESULT_Packet>(buffer);
+                    if (result.Result == 1)
+                    {
+                        break;
+                    }
                 }
-                                
+                
+                chatserver.BeginReceive();
+                
                 while (true)
                 {
                     Console.Write(">> ");

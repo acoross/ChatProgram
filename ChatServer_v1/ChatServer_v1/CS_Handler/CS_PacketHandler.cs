@@ -37,6 +37,17 @@ namespace ChatServer_v1.CS_Handler
 
             //PacketHelper.Send(sock, (Int16)SC_PacketType.SC_ACCEPTED, packet);
         }
+
+        // socket close 처리 할 때 먼저 호출한다.
+        public void OnClosed(ISocket sock)
+        {
+            // 유저 리스트에서 제거.
+            ChatUser owner = (ChatUser)sock.Owner;
+            lock(ChatServer.Instance().m_ChatUserMapLock)
+            {
+                ChatServer.Instance().m_mapChatUser.Remove(owner.name);
+            }
+        }
     }
 
     // packet handler
@@ -60,7 +71,26 @@ namespace ChatServer_v1.CS_Handler
             if (iter.name == packet.name)
             {
                 SC_LOGIN_RESULT_Packet result = new SC_LOGIN_RESULT_Packet();
-                result.Result = 1;
+                
+                lock (ChatServer.Instance().m_ChatUserMapLock)
+                {
+                    ChatUser tmp;
+                    if (ChatServer.Instance().m_mapChatUser.TryGetValue(packet.name, out tmp))
+                    {
+                        result.Result = 0;
+                    }
+                    else
+                    {
+                        result.Result = 1;
+
+                        ChatUser newUser = new ChatUser();
+                        newUser.name = packet.name;
+                        newUser.UserSocket = sock;
+
+                        sock.Owner = newUser;
+                        ChatServer.Instance().m_mapChatUser.Add(newUser.name, newUser);
+                    }
+                }
 
                 Console.WriteLine("{0} logged in.", packet.name);
 
@@ -107,10 +137,14 @@ namespace ChatServer_v1.CS_Handler
 
             // 다른 유저들에게 전송
             SC_SAY_Packet sendPacket = new SC_SAY_Packet();
-            sendPacket.sender = "sender";
+            sendPacket.sender = ((ChatUser)sock.Owner).name;
             sendPacket.msg = packet.msg;
 
-            ChatServer.Instance().m_listenServer.SendToAllWithoutMe(sock, (Int16)SC_PacketType.SC_SAY, sendPacket);
+            ChatServer.Instance().SendToAllUserWithoutMe(sock, (Int16)SC_PacketType.SC_SAY, sendPacket);
+            
+            // 아래는 모든 socket 에게 보내기, 위는 모든 '유저' 에게 보내기
+            // 유저는 로그인 성공한 녀석들만 포함.
+            //ChatServer.Instance().m_listenServer.SendToAllWithoutMe(sock, (Int16)SC_PacketType.SC_SAY, sendPacket);
 
             return false;
         }

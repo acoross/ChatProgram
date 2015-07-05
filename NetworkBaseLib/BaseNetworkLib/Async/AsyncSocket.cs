@@ -10,6 +10,12 @@ namespace Acoross.BaseNetworkLib.Async
 {
     public class AsyncSocket : ISocket
     {
+        public IOwner m_Owner;
+        public IOwner Owner
+        {
+            get { return m_Owner; }
+            set { m_Owner = value; }
+        }
         public IListenServer m_ListenServer = null;
         public Socket m_Socket = null;
         public const int BufferSize = 1024;
@@ -228,6 +234,8 @@ namespace Acoross.BaseNetworkLib.Async
 
         private void Close()
         {
+            m_Callback.OnClosed(this);
+
             m_ListenServer.RemoveClientSocket(this);
             if (m_Socket != null)
             {

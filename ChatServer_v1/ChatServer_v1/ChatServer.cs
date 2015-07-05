@@ -27,17 +27,10 @@ namespace ChatServer_v1
 
         public List<UserLoginData> m_UserLoginDataList = new List<UserLoginData>();
 
-        public AsyncListenServer<CS_PacketTableNew, ChatClientSocketCallback> m_listenServer = null;
-        private Object m_ClientSocketsLock = new Object();
-        private List<ISocket> m_ClientSockets = new List<ISocket>();
+        public Object m_ChatUserMapLock = new object();
+        public Dictionary<string, ChatUser> m_mapChatUser = new Dictionary<string, ChatUser>();
 
-        public void AddClientSocket(ISocket newSock)
-        {
-            lock(m_ClientSocketsLock)
-            {
-                m_ClientSockets.Add(newSock);
-            }
-        }
+        public AsyncListenServer<CS_PacketTableNew, ChatClientSocketCallback> m_listenServer = null;
 
         private static ChatServer m_Instance = null;
         public static ChatServer Instance()
@@ -48,6 +41,22 @@ namespace ChatServer_v1
             }
 
             return m_Instance;
+        }
+
+        public bool SendToAllUserWithoutMe<Ts>(ISocket me, Int16 packetNum, Ts packet) where Ts : IPacket
+        {
+            lock(m_ChatUserMapLock)
+            {
+                foreach (ChatUser user in m_mapChatUser.Values)
+                {
+                    if (user.UserSocket == me)
+                        continue;
+
+                    PacketHelper.Send(user.UserSocket, packetNum, packet);
+                }
+            }
+
+            return true;
         }
 
         public List<ISocket> GetClientSocketList()

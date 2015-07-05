@@ -41,6 +41,7 @@
   <ItemGroup>
     <Compile Include="BaseNetworkLib\Async\AsyncListenServer.cs" />
     <Compile Include="BaseNetworkLib\Async\AsyncSocket.cs" />
+    <Compile Include="BaseNetworkLib\IOwner.cs" />
     <Compile Include="BaseNetworkLib\IPacket.cs" />
     <Compile Include="BaseNetworkLib\ISocket.cs" />
     <Compile Include="BaseNetworkLib\PacketHelper.cs" />

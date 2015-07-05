@@ -37,6 +37,8 @@ namespace Acoross.BaseNetworkLib.Async
         }
         public void RemoveClientSocket(ISocket sock)
         {
+            Console.WriteLine("client socket removed from list ({0})", sock.GetSocket().RemoteEndPoint.ToString());
+
             lock(m_ClientSocketLock)
             {
                 m_ClientSocketList.Remove(sock);
