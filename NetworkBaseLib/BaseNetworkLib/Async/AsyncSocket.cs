@@ -10,6 +10,7 @@ namespace Acoross.BaseNetworkLib.Async
 {
     public class AsyncSocket : ISocket
     {
+        public IListenServer m_ListenServer = null;
         public Socket m_Socket = null;
         public const int BufferSize = 1024;
         public byte[] m_buffer = new byte[BufferSize];
@@ -169,11 +170,8 @@ namespace Acoross.BaseNetworkLib.Async
                         if (nPacketNum < 0 || nPacketNum >= m_PacketTable.PacketTable().Length) // out of range
                         {
                             Console.WriteLine("packet number is invalid({0})", nPacketNum);
-                            Console.WriteLine("socket closed ({0})", m_Socket.RemoteEndPoint.ToString());
 
-                            m_Socket.Shutdown(SocketShutdown.Both);
-                            m_Socket.Close();
-                            m_Socket = null;
+                            Close();
 
                             return;
                         }
@@ -182,11 +180,8 @@ namespace Acoross.BaseNetworkLib.Async
                         if (nBodyLen < 0)
                         {
                             Console.WriteLine("body length is invalid({0})", nBodyLen);
-                            Console.WriteLine("socket closed ({0})", m_Socket.RemoteEndPoint.ToString());
 
-                            m_Socket.Shutdown(SocketShutdown.Both);
-                            m_Socket.Close();
-                            m_Socket = null;
+                            Close();
 
                             return;
                         }
@@ -199,11 +194,7 @@ namespace Acoross.BaseNetworkLib.Async
                         // packet process - call packet function
                         if (m_PacketTable.PacketTable()[nPacketNum](this, m_buffer))    // CPacket.Handle<T>
                         {
-                            Console.WriteLine("socket closed ({0})", m_Socket.RemoteEndPoint.ToString());
-
-                            m_Socket.Shutdown(SocketShutdown.Both);
-                            m_Socket.Close();
-                            m_Socket = null;
+                            Close();
 
                             return;
                         }
@@ -224,11 +215,7 @@ namespace Acoross.BaseNetworkLib.Async
                 }
                 else if (bytesRead == 0)
                 {
-                    Console.WriteLine("socket closed ({0})", m_Socket.RemoteEndPoint.ToString());
-
-                    m_Socket.Shutdown(SocketShutdown.Both);
-                    m_Socket.Close();
-                    m_Socket = null;
+                    Close();
 
                     return;
                 }
@@ -236,6 +223,18 @@ namespace Acoross.BaseNetworkLib.Async
             catch (SocketException se)
             {
                 Console.WriteLine(se.ToString());
+            }
+        }
+
+        private void Close()
+        {
+            m_ListenServer.RemoveClientSocket(this);
+            if (m_Socket != null)
+            {
+                Console.WriteLine("socket closed ({0})", m_Socket.RemoteEndPoint.ToString());
+                m_Socket.Shutdown(SocketShutdown.Both);
+                m_Socket.Close();
+                m_Socket = null;
             }
         }
 

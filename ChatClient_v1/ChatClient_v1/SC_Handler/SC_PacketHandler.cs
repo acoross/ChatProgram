@@ -7,6 +7,8 @@ using System.Threading.Tasks;
 using Acoross.NetworkShared;
 using Acoross.BaseNetworkLib;
 
+using ChatClient_v1;
+
 namespace ChatClient_v1.SC_Handler
 {
     public class SC_PacketTable : IPacketTable
@@ -18,12 +20,8 @@ namespace ChatClient_v1.SC_Handler
 
         static PacketHandler[] m_PacketTable =
         {
-        //     SC_ACCEPTED,
-        //SC_LOGIN_RESULT,
-        //SC_ECHO_RP,
-        //SC_SAY,
             SC_Handlers.SC_ACCEPTED_Handler,
-
+            SC_Handlers.SC_LOGIN_RESULT_Handler,
             SC_Handlers.SC_ECHO_RP_Handler,
             SC_Handlers.SC_SAY_Handler
         };
@@ -63,10 +61,14 @@ namespace ChatClient_v1.SC_Handler
             if (packet.Result == 1)
             {
                 Console.WriteLine("Login success");
+                Program.loginResult = 1;
+                Program.m_alldone.Set();
             }
             else if (packet.Result == 0)
             {
                 Console.WriteLine("Login fail");
+                Program.loginResult = 0;
+                Program.m_alldone.Set();
             }
             else
             {

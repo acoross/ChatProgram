@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 using Acoross.NetworkShared;
@@ -15,6 +16,9 @@ namespace ChatClient_v1
 {
     class Program
     {
+        public static ManualResetEvent m_alldone = new ManualResetEvent(false);
+        public static int loginResult = 0;
+
         static void AsyncConnection(string ip)
         {
             if (ip == null)
@@ -26,6 +30,8 @@ namespace ChatClient_v1
 
             if (chatserver.ConnectTo(ip))
             {
+                chatserver.BeginReceive();
+
                 while (true)
                 {
                     // send id and pwd
@@ -40,17 +46,20 @@ namespace ChatClient_v1
                     loginPacket.pwd = input_pwd;
                     PacketHelper.Send(chatserver, (Int16)CS_PacketType.CS_LOGIN, loginPacket);
                     byte[] buffer = new byte[1024];
-                    
-                    chatserver.GetSocket().Receive(buffer);
-                    SC_LOGIN_RESULT_Packet result = PacketHelper.ParsePacketStruct<SC_LOGIN_RESULT_Packet>(buffer);
-                    if (result.Result == 1)
+
+                    m_alldone.WaitOne();
+                    if (loginResult == 1)
                     {
                         break;
                     }
+                    //chatserver.GetSocket().Receive(buffer);
+                    //SC_LOGIN_RESULT_Packet result = PacketHelper.ParsePacketStruct<SC_LOGIN_RESULT_Packet>(buffer);
+                    //if (result.Result == 1)
+                    //{
+                    //    break;
+                    //}
                 }
-
-                chatserver.BeginReceive();
-
+                                
                 while (true)
                 {
                     Console.Write(">> ");
@@ -86,7 +95,9 @@ namespace ChatClient_v1
             {
                 ip = args[0];
             }
-
+            
+            //ip = "192.168.0.7";
+            //ip = "acoross3.iptime.org";
             AsyncConnection(ip);
 
             Console.WriteLine("Press any key.");

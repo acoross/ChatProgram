@@ -11,7 +11,13 @@ using System.Net.Sockets;
 
 namespace Acoross.BaseNetworkLib.Async
 {
-    public class AsyncListenServer<T, Cb> 
+    public interface IListenServer
+    {
+        void RemoveClientSocket(ISocket sock);
+    }
+
+    public class AsyncListenServer<T, Cb>
+        : IListenServer
         where T : IPacketTable, new()
         where Cb : IAsyncSocketCallback, new()
     {
@@ -28,6 +34,13 @@ namespace Acoross.BaseNetworkLib.Async
             }
 
             return true;
+        }
+        public void RemoveClientSocket(ISocket sock)
+        {
+            lock(m_ClientSocketLock)
+            {
+                m_ClientSocketList.Remove(sock);
+            }
         }
         public List<ISocket> GetClientSocketList()
         {
@@ -104,8 +117,9 @@ namespace Acoross.BaseNetworkLib.Async
             Socket handler = listener.EndAccept(ar);
 
             AsyncSocket cliSock = new AsyncSocket(handler, new T(), new Cb());
-
+            
             cliSock.OnAccepted();
+            cliSock.m_ListenServer = ss;
             ss.AddClientSocket(cliSock);
 
             cliSock.BeginReceive();
